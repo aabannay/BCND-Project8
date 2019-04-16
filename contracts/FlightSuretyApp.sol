@@ -67,16 +67,20 @@ contract FlightSuretyApp {
     /*                                       CONSTRUCTOR                                        */
     /********************************************************************************************/
 
+    FlightSuretyData flightSuretyData;      //data contract
+
     /**
     * @dev Contract constructor
     *
     */
     constructor
                                 (
+                                    address dataContract
                                 ) 
                                 public 
     {
         contractOwner = msg.sender;
+        flightSuretyData = FlightSuretyData(dataContract);
     }
 
     /********************************************************************************************/
@@ -335,3 +339,10 @@ contract FlightSuretyApp {
 // endregion
 
 }   
+
+//signatures of the data contract
+
+contract FlightSuretyData {
+    function isOperational() public view returns(bool);
+    
+}
