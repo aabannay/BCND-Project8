@@ -11,7 +11,7 @@ contract FlightSuretyData {
 
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
-
+    mapping(address => uint256) authorizedCallers;                      //contract authorized callers (to limit function calls)
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
@@ -56,6 +56,11 @@ contract FlightSuretyData {
         _;
     }
 
+    modifier isAuthorizedCaller()
+    {
+        require(authorizedCallers[msg.sender] == 1, "Caller is not authorized");
+        _;
+    }
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
@@ -89,9 +94,31 @@ contract FlightSuretyData {
         operational = mode;
     }
 
+    function authorizeCaller(address addressToAuthorize) external requireContractOwner
+    {
+        authorizedCallers[addressToAuthorize] = 1; 
+    }
+
+    function deauthorizeCaller(address addressToAuthorize) external requireContractOwner
+    {
+        delete authorizedCallers[addressToAuthorize];
+    }
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
+
+    struct Airline {
+        bool paidFund;
+        bool isRegistered; 
+    }
+    
+    mapping(address => Airline) airlines; 
+
+    modifier requirePaidFund(address airlineAddress)
+    {
+        require(airlines[airlineAddress].paidFund, "Airline has not paid fund to participate");
+        _;
+    } 
 
    /**
     * @dev Add an airline to the registration queue
@@ -99,13 +126,38 @@ contract FlightSuretyData {
     *
     */   
     function registerAirline
-                            (   
+                            (  
+                                address callingAirline, 
+                                address newAirline 
                             )
                             external
-                            pure
+                            requireIsOperational()
+                            isAuthorizedCaller()
+                            requirePaidFund(callingAirline)
+                            returns (bool result)
     {
+        //ensure the airline you are trying to register is not a registered airline
+        require(!airlines[newAirline].isRegistered, "The airline you are trying to register is a registered airline");
+        //now rigester the airline
+        airlines[newAirline].isRegistered = true; 
+        //however this airline has not paid fund yet. 
+        airlines[newAirline].paidFund = false; 
     }
 
+    //this function will fund an airline
+    function fundAirline 
+                        (
+                            address airline
+                        )
+                        external
+                        requireIsOperational()
+                        isAuthorizedCaller()
+    {
+        //ensure the airline you are trying to fund is  a registered airline
+        require(airlines[airline].isRegistered, "The airline you are trying to fund is not registered airline");
+        //fund the airline
+        airlines[airline].paidFund = true; 
+    }
 
    /**
     * @dev Buy insurance for a flight
