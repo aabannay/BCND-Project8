@@ -228,7 +228,7 @@ contract FlightSuretyData {
         //the check of the flights existance is done on the app contract 
         
         //get the signature of the current insurance policy 
-        byte32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timestamp));
+        byte32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timeOfFlight));
 
         //create a new insurance policy and add it to insuraces list. 
         InsurancePolicy storage policy = insurances[insuranceSignature]
@@ -240,15 +240,48 @@ contract FlightSuretyData {
 
     }
 
+    modifier requireIsInsured(
+                                    address insuree, 
+                                    address airline, 
+                                    string flight, 
+                                    uint256 timeOfFlight
+                                )
+    {
+        require(isInsured(insuree, airline, flight, timeOfFlight), "Passenger is not insured");
+        _;
+    } 
+
+    //cridets of insuees 
+    map(address => uint256) cridets; 
+
     /**
      *  @dev Credits payouts to insurees
     */
     function creditInsurees
                                 (
+                                    address insuree, 
+                                    address airline, 
+                                    string flight, 
+                                    uint256 timeOfFlight
                                 )
                                 external
-                                pure
+                                requireIsOperational()
+                                isAuthorizedCaller()
+                                requireIsInsured()
+                                return (bool result)
     {
+        //check if the insuree has not been paid yet
+        byte32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timestamp));
+        require(!insurances[insuraceSignature].gotPaid);
+
+        //since the insuree is not paid change the value
+        insurances[insuraceSignature].gotPaid = true; 
+
+        //then make the action
+        //first calc the value to be paid
+        uint256 valueToPay = insurances[insuraceSignature].insuranceValue.div(10).mul(15);
+        //then add it to the cridets of this insuree
+        cridets[insuree] = cridets[insuree].add(valueToPay);
     }
     
 

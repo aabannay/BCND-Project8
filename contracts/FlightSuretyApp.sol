@@ -344,5 +344,6 @@ contract FlightSuretyApp {
 
 contract FlightSuretyData {
     function isOperational() public view returns(bool);
-    function registerAirline(address callingAirline, address newAirline ) external requireIsOperational() isAuthorizedCaller() requirePaidFund(callingAirline) returns (bool result);
+    function registerAirline(address callingAirline, address newAirline ) external returns(bool);
+    function buy(address insuree, address airline, string flight, uint256 timeOfFlight, uint256 insuraceValue) external; 
 }
