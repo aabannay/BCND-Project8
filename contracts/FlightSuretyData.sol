@@ -23,10 +23,17 @@ contract FlightSuretyData {
     */
     constructor
                                 (
+                                    address theFirstAirline
                                 ) 
-                                public 
+                                public
     {
         contractOwner = msg.sender;
+        //register the first airline (This will be done once only)
+        //since the registeration of airline must happen through an airline
+        //and the registeration method can only be called by a registered airline
+        airlines[theFirstAirline].isRegistered = true;
+        //however the first airline has not not paid funds yet. 
+        airlines[theFirstAirline].paidFund = false; 
     }
 
     /********************************************************************************************/
@@ -164,10 +171,15 @@ contract FlightSuretyData {
     *
     */   
     function buy
-                            (                             
+                            (  
+                                address insuree, 
+                                address airline, 
+
                             )
                             external
                             payable
+                            requireIsOperational()
+                            isAuthorizedCaller()
     {
 
     }
