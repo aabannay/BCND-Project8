@@ -50,7 +50,7 @@ contract FlightSuretyApp {
     modifier requireIsOperational() 
     {
          // Modify to call data contract's status
-        require(true, "Contract is currently not operational");  
+        require(isOperational(), "Contract is currently not operational");  
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -89,10 +89,11 @@ contract FlightSuretyApp {
 
     function isOperational() 
                             public 
-                            pure 
+                            view 
                             returns(bool) 
     {
-        return true;  // Modify to call data contract's status
+        //get the operational status from the data contract
+        return flightSuetyData.isOperational();
     }
 
     /********************************************************************************************/
@@ -106,9 +107,11 @@ contract FlightSuretyApp {
     */   
     function registerAirline
                             (   
+                                address callingAirline, 
+                                address newAirline
                             )
                             external
-                            pure
+                            requireIsOperational()
                             returns(bool success, uint256 votes)
     {
         return (success, 0);
@@ -346,4 +349,5 @@ contract FlightSuretyData {
     function isOperational() public view returns(bool);
     function registerAirline(address callingAirline, address newAirline ) external returns(bool);
     function buy(address insuree, address airline, string flight, uint256 timeOfFlight, uint256 insuraceValue) external; 
+    //TODO add other signatures here..
 }
