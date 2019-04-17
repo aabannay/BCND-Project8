@@ -81,6 +81,8 @@ contract FlightSuretyApp {
     {
         contractOwner = msg.sender;
         flightSuretyData = FlightSuretyData(dataContract);
+        //the constructur registered an airline already 
+        registeredAirlinesCount = 1; 
     }
 
     /********************************************************************************************/
@@ -93,13 +95,18 @@ contract FlightSuretyApp {
                             returns(bool) 
     {
         //get the operational status from the data contract
-        return flightSuetyData.isOperational();
+        return flightSuretyData.isOperational();
     }
 
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
 
+
+    //constant for the number of flight to be registered without the need for voting
+    uint256 private REGISTER_WITHOUT_VOTING_LIMIT = 4; 
+    //number of airlines registered so far
+    uint256 private registeredAirlinesCount = 0; 
   
    /**
     * @dev Add an airline to the registration queue
@@ -114,7 +121,22 @@ contract FlightSuretyApp {
                             requireIsOperational()
                             returns(bool success, uint256 votes)
     {
-        return (success, 0);
+        bool resultOfRegisteration = false;
+        uint256 votesCount = 0; 
+        //checking if airline is registered already to call and the new airline is not registered is done at the data contract side. 
+        //check if you would need to go through the voting or not
+        if(registeredAirlinesCount > REGISTER_WITHOUT_VOTING_LIMIT) {
+            flightSuretyData.registerAirline(callingAirline, newAirline)
+        } else { //voting is required
+            //check for votes
+            resultOfRegisteration = true; 
+        }
+
+        //if an airline is registered increase the count of reigstered airlines. 
+        if (resultOfRegisteration) {
+            registerdAirlinesCount.add(1);
+        }
+        return (resultOfRegisteration, votesCount);
     }
 
 
