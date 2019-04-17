@@ -291,10 +291,24 @@ contract FlightSuretyData {
     */
     function pay
                             (
+                                address insuree, 
+                                uint256 amount
                             )
                             external
-                            pure
+                            requireIsOperational()
+                            isAuthorizedCaller()
     {
+        //check if the contract has enough funds to pay the insuree
+        require(address(this).balance >= amount, "There are no enough funds to pay in the contract");
+
+        //check if the required amount is available to the insuree
+        require(cridets[insuree] >= amount, "Passer do not have enough cridet");
+
+        //subtract the cridets
+        cridets[insuree] = cridets[insuree].sub(amount); 
+
+        //pay the amount 
+        insuree.transfer(amount);
     }
 
    /**
