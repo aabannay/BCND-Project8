@@ -149,6 +149,9 @@ contract FlightSuretyData {
         airlines[newAirline].isRegistered = true; 
         //however this airline has not paid fund yet. 
         airlines[newAirline].paidFund = false; 
+
+        //return the value of registeration 
+        return airlines[newAirline].isRegistered;
     }
 
     //this function will fund an airline
@@ -166,21 +169,74 @@ contract FlightSuretyData {
         airlines[airline].paidFund = true; 
     }
 
+
+    //flight key to insuree address
+    map(byte32 => address[]) private flightToInsureeMap; 
+
+    //key of insuree and details to the policy of insurance
+    map(byte32 => InsurancePolicy) private insurances; 
+
+    struct InsurancePolicy {
+        bool isInsured; 
+        uint256 insuranceValue; 
+        bool gotPaid; 
+    }
+
+    modifier requireIsNotInsured(
+                                    address insuree, 
+                                    address airline, 
+                                    string flight, 
+                                    uint256 timeOfFlight
+                                )
+    {
+        require(!isInsured(insuree, airline, flight, timeOfFlight), "Passenger already insured");
+        _;
+    } 
+    
+    function isInsured(
+                        address insuree, 
+                        address airline, 
+                        string flight, 
+                        uint256 timeOfFlight
+
+                    )
+                    return (bool result)
+    {
+        byte32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timestamp));
+        return insurances[insuranceSignature].isInsured;
+    }
    /**
     * @dev Buy insurance for a flight
     *
     */   
     function buy
                             (  
-                                address insuree, 
-                                address airline, 
-
+                                address insuree, //potential insuree
+                                address airline, //addressOfAirline
+                                string flight,  //this is the code of the flight
+                                uint256 timeOfFlight, //timestamp of the flight
+                                uint256 insuraceValue   //this is the amount the potential insuree is welling to pay.
                             )
                             external
                             payable
                             requireIsOperational()
                             isAuthorizedCaller()
+                            requireIsNotInsured(insuree, airline, flight, timeOfFlight) //we need to check that this caller has not bought insurance already
     {
+        //first the airline must be a rigestered airline
+        require(airlines[airline].isRegistered, "The airline is not registered");
+        //the check of the flights existance is done on the app contract 
+        
+        //get the signature of the current insurance policy 
+        byte32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timestamp));
+
+        //create a new insurance policy and add it to insuraces list. 
+        InsurancePolicy storage policy = insurances[insuranceSignature]
+        policy.insuranceValue = insuranceValue; 
+        policy.isInsured = true; 
+
+        //now save it in the map of flight to insuree
+        flightToInsureeMap[getFlightKey(airline, flight, timeOfFlight)] = insuree; 
 
     }
 
