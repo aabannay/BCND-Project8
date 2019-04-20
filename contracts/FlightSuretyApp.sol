@@ -105,37 +105,58 @@ contract FlightSuretyApp {
 
     //constant for the number of flight to be registered without the need for voting
     uint256 private REGISTER_WITHOUT_VOTING_LIMIT = 4; 
+    
     //number of airlines registered so far
     uint256 private registeredAirlinesCount = 0; 
-  
+    
+    //mapping between airlines voting 
+    mapping(address => address[]) private votes; 
+
    /**
     * @dev Add an airline to the registration queue
     *
     */   
     function registerAirline
                             (   
-                                address callingAirline, 
                                 address newAirline
                             )
                             external
                             requireIsOperational()
-                            returns(bool success, uint256 votes)
+                            returns(bool success, uint256 votesCount)
     {
         bool resultOfRegisteration = false;
-        uint256 votesCount = 0; 
+        votesCount = 0; 
         //checking if airline is registered already to call and the new airline is not registered is done at the data contract side. 
         //check if you would need to go through the voting or not
         if(registeredAirlinesCount > REGISTER_WITHOUT_VOTING_LIMIT) {
-            resultOfRegisteration = flightSuretyData.registerAirline(callingAirline, newAirline);
+            resultOfRegisteration = flightSuretyData.registerAirline(msg.sender, newAirline);
         } else { //voting is required
-            //check for votes
-            resultOfRegisteration = true; 
+            //check for votes that are doblicated
+            bool isDoublicate = false;
+            for (uint i=0; i < votes[newAirline].length; i++) {
+                if(votes[newAirline][i] == msg.sender) {
+                    isDoublicate = true;
+                }
+                break; //found out that the registering airline already voted!
+            }
+            //if it was doublicate then exit 
+            require(!isDoublicate, "Double votes are not allowed!");
+
+            //otherwise add the vote to the list of votes 
+                votes[newAirline].push(msg.sender);
+
+                //now check if you reached the consensus (50%)
+                if (votes[newAirline].length > registeredAirlinesCount.div(2)) {
+                    resultOfRegisteration = flightSuretyData.registerAirline(msg.sender, newAirline);
+                }
+            
         }
 
         //if an airline is registered increase the count of reigstered airlines. 
         if (resultOfRegisteration) {
             registeredAirlinesCount.add(1);
         }
+
         return (resultOfRegisteration, votesCount);
     }
 
