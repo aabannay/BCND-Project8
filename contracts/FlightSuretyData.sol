@@ -23,7 +23,7 @@ contract FlightSuretyData {
     */
     constructor
                                 (
-                                    address theFirstAirline
+                                    //address theFirstAirline
                                 ) 
                                 public
     {
@@ -31,9 +31,11 @@ contract FlightSuretyData {
         //register the first airline (This will be done once only)
         //since the registeration of airline must happen through an airline
         //and the registeration method can only be called by a registered airline
-        airlines[theFirstAirline].isRegistered = true;
+        
+        //airlines[theFirstAirline].isRegistered = true;
+        
         //however the first airline has not not paid funds yet. 
-        airlines[theFirstAirline].paidFund = false; 
+        //airlines[theFirstAirline].paidFund = false; 
     }
 
     /********************************************************************************************/
@@ -282,6 +284,8 @@ contract FlightSuretyData {
         uint256 valueToPay = insurances[insuranceSignature].insuranceValue.div(10).mul(15);
         //then add it to the cridets of this insuree
         cridets[insuree] = cridets[insuree].add(valueToPay);
+
+        return insurances[insuranceSignature].gotPaid; 
     }
     
 
