@@ -352,6 +352,28 @@ contract FlightSuretyData {
         fund();
     }
 
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //+++++++++++++++++++++++++++NEW METHODS++++++++++++++++++++++++++++++++
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function checkAirlineValidity(
+                                    address airline
+                                ) 
+                                external
+                                view
+                                requireIsOperational()
+                                isAuthorizedCaller() 
+                                returns (bool result)
+    {
+        //the airline is registered and funded
+        require(airlines[airline].isRegistered, "Airline is not registed");
+        require(airlines[airline].paidFund, "Airline has not paritipated in fund");
+  
+        return true; 
+    }
+
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 }
 

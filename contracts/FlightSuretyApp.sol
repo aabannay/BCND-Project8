@@ -167,11 +167,24 @@ contract FlightSuretyApp {
     */  
     function registerFlight
                                 (
+                                    address airline,
+                                    string flightCode, 
+                                    uint256 timeOfFlight
                                 )
                                 external
-                                pure
+                                requireIsOperational()
     {
+        //check
+        require(flightSuretyData.checkAirlineValidity(airline), "Inalid Airline"); 
 
+        //TODO check the time is in the future?
+
+        bytes32 flightKey = keccak256(abi.encodePacked(airline, flightCode, timeOfFlight));
+        flights[flightKey] = Flight ({
+        isRegistered: true,
+        statusCode: 0,
+        updatedTimestamp: timeOfFlight,     
+        airline: airline});
     }
     
    /**
@@ -393,4 +406,5 @@ contract FlightSuretyData {
     function registerAirline(address callingAirline, address newAirline ) external returns(bool);
     function buy(address insuree, address airline, string flight, uint256 timeOfFlight, uint256 insuraceValue) external; 
     //TODO add other signatures here..
+    function checkAirlineValidity(address airline) external returns (bool result);
 }
