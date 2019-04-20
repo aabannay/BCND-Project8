@@ -411,4 +411,5 @@ contract FlightSuretyData {
     //TODO add other signatures here..
     function checkAirlineValidity(address airline) external returns (bool result);
     function creditInsurees (address airline, string flight, uint256 timeOfFlight) external returns (bool result);
+    function isAirline(address airline) external view returns (bool result);
 }

@@ -275,7 +275,7 @@ contract FlightSuretyData {
         for (uint256 i=0; i < flightToInsureeMap[flightKey].length; i++) {
             //address of current insuree
             address insuree = flightToInsureeMap[flightKey][i];
-            
+
             //check if the insuree has not been paid yet
             bytes32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timeOfFlight));
             require(!insurances[insuranceSignature].gotPaid);
@@ -372,6 +372,20 @@ contract FlightSuretyData {
         require(airlines[airline].paidFund, "Airline has not paritipated in fund");
   
         return true; 
+    }
+
+    function isAirline(
+                        address airline
+                    )
+                    external
+                    view
+                    requireIsOperational()
+                    isAuthorizedCaller()
+                    returns (bool result)
+    {
+        result = airlines[airline].isRegistered;
+
+        return result; 
     }
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
