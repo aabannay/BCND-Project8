@@ -261,7 +261,6 @@ contract FlightSuretyData {
     */
     function creditInsurees
                                 (
-                                    address insuree, 
                                     address airline, 
                                     string flight, 
                                     uint256 timeOfFlight
@@ -269,23 +268,27 @@ contract FlightSuretyData {
                                 external
                                 requireIsOperational()
                                 isAuthorizedCaller()
-                                requireIsInsured(insuree, airline, flight, timeOfFlight)
-                                returns (bool result)
     {
-        //check if the insuree has not been paid yet
-        bytes32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timeOfFlight));
-        require(!insurances[insuranceSignature].gotPaid);
 
-        //since the insuree is not paid change the value
-        insurances[insuranceSignature].gotPaid = true; 
+        //loop thrught insurees under this flight
+        bytes32 flightKey = getFlightKey(airline, flight, timeOfFlight); 
+        for (uint256 i=0; i < flightToInsureeMap[flightKey].length; i++) {
+            //address of current insuree
+            address insuree = flightToInsureeMap[flightKey][i];
+            
+            //check if the insuree has not been paid yet
+            bytes32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timeOfFlight));
+            require(!insurances[insuranceSignature].gotPaid);
 
-        //then make the action
-        //first calc the value to be paid
-        uint256 valueToPay = insurances[insuranceSignature].insuranceValue.div(10).mul(15);
-        //then add it to the cridets of this insuree
-        cridets[insuree] = cridets[insuree].add(valueToPay);
+            //since the insuree is not paid change the value
+            insurances[insuranceSignature].gotPaid = true; 
 
-        return insurances[insuranceSignature].gotPaid; 
+            //then make the action
+            //first calc the value to be paid
+            uint256 valueToPay = insurances[insuranceSignature].insuranceValue.div(10).mul(15);
+            //then add it to the cridets of this insuree
+            cridets[insuree] = cridets[insuree].add(valueToPay);
+        }
     }
     
 
@@ -355,7 +358,6 @@ contract FlightSuretyData {
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //+++++++++++++++++++++++++++NEW METHODS++++++++++++++++++++++++++++++++
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
     function checkAirlineValidity(
                                     address airline
                                 ) 
@@ -371,7 +373,6 @@ contract FlightSuretyData {
   
         return true; 
     }
-
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

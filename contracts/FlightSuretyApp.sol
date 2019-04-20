@@ -199,8 +199,11 @@ contract FlightSuretyApp {
                                     uint8 statusCode
                                 )
                                 internal
-                                pure
+                                requireIsOperational()
     {
+        if(statusCode == STATUS_CODE_LATE_AIRLINE) {
+            flightSuretyData.creditInsurees(airline, flight, timestamp);
+        }
     }
 
 
@@ -407,4 +410,5 @@ contract FlightSuretyData {
     function buy(address insuree, address airline, string flight, uint256 timeOfFlight, uint256 insuraceValue) external; 
     //TODO add other signatures here..
     function checkAirlineValidity(address airline) external returns (bool result);
+    function creditInsurees (address airline, string flight, uint256 timeOfFlight) external returns (bool result);
 }
