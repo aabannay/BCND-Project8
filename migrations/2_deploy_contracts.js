@@ -19,7 +19,7 @@ module.exports = function(deployer) {
 
                     accounts = await web3.eth.getAccounts();
                     console.log(accounts);
-                    let flightSuretyData = await FlightSuretyData.new();
+                    let flightSuretyData = await FlightSuretyData.new(firstAirline);
                     let flightSuretyApp = await FlightSuretyApp.new(flightSuretyData.address);
                     await flightSuretyData.authorizeCaller(flightSuretyApp.address);
 
