@@ -134,7 +134,7 @@ contract FlightSuretyApp {
 
         //if an airline is registered increase the count of reigstered airlines. 
         if (resultOfRegisteration) {
-            registerdAirlinesCount.add(1);
+            registeredAirlinesCount.add(1);
         }
         return (resultOfRegisteration, votesCount);
     }

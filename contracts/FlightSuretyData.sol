@@ -171,10 +171,10 @@ contract FlightSuretyData {
 
 
     //flight key to insuree address
-    mapping(byte32 => address[]) private flightToInsureeMap; 
+    mapping(bytes32 => address[]) private flightToInsureeMap; 
 
     //key of insuree and details to the policy of insurance
-    mapping(byte32 => InsurancePolicy) private insurances; 
+    mapping(bytes32 => InsurancePolicy) private insurances; 
 
     struct InsurancePolicy {
         bool isInsured; 
@@ -200,9 +200,9 @@ contract FlightSuretyData {
                         uint256 timeOfFlight
 
                     )
-                    return (bool result)
+                    returns (bool result)
     {
-        byte32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timestamp));
+        bytes32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timeOfFlight));
         return insurances[insuranceSignature].isInsured;
     }
    /**
@@ -215,7 +215,7 @@ contract FlightSuretyData {
                                 address airline, //addressOfAirline
                                 string flight,  //this is the code of the flight
                                 uint256 timeOfFlight, //timestamp of the flight
-                                uint256 insuraceValue   //this is the amount the potential insuree is welling to pay.
+                                uint256 insuranceValue   //this is the amount the potential insuree is welling to pay.
                             )
                             external
                             payable
@@ -228,15 +228,15 @@ contract FlightSuretyData {
         //the check of the flights existance is done on the app contract 
         
         //get the signature of the current insurance policy 
-        byte32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timeOfFlight));
+        bytes32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timeOfFlight));
 
         //create a new insurance policy and add it to insuraces list. 
-        InsurancePolicy storage policy = insurances[insuranceSignature]
+        InsurancePolicy storage policy = insurances[insuranceSignature];
         policy.insuranceValue = insuranceValue; 
         policy.isInsured = true; 
 
         //now save it in the map of flight to insuree
-        flightToInsureeMap[getFlightKey(airline, flight, timeOfFlight)] = insuree; 
+        flightToInsureeMap[getFlightKey(airline, flight, timeOfFlight)].push(insuree); 
 
     }
 
@@ -252,7 +252,7 @@ contract FlightSuretyData {
     } 
 
     //cridets of insuees 
-    map(address => uint256) cridets; 
+    mapping(address => uint256) cridets; 
 
     /**
      *  @dev Credits payouts to insurees
@@ -267,19 +267,19 @@ contract FlightSuretyData {
                                 external
                                 requireIsOperational()
                                 isAuthorizedCaller()
-                                requireIsInsured()
-                                return (bool result)
+                                requireIsInsured(insuree, airline, flight, timeOfFlight)
+                                returns (bool result)
     {
         //check if the insuree has not been paid yet
-        byte32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timestamp));
-        require(!insurances[insuraceSignature].gotPaid);
+        bytes32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timeOfFlight));
+        require(!insurances[insuranceSignature].gotPaid);
 
         //since the insuree is not paid change the value
-        insurances[insuraceSignature].gotPaid = true; 
+        insurances[insuranceSignature].gotPaid = true; 
 
         //then make the action
         //first calc the value to be paid
-        uint256 valueToPay = insurances[insuraceSignature].insuranceValue.div(10).mul(15);
+        uint256 valueToPay = insurances[insuranceSignature].insuranceValue.div(10).mul(15);
         //then add it to the cridets of this insuree
         cridets[insuree] = cridets[insuree].add(valueToPay);
     }

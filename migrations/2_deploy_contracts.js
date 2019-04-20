@@ -8,7 +8,7 @@ module.exports = function(deployer) {
     deployer.deploy(FlightSuretyData)
     .then(() => {
         return deployer.deploy(FlightSuretyApp)
-                .tthen(async () => {
+                .then(async () => {
                     let config = {
                         localhost: {
                             url: 'ws://localhost:8545',
@@ -18,6 +18,7 @@ module.exports = function(deployer) {
                     };
 
                     accounts = await web3.eth.getAccounts();
+                    console.log(accounts);
                     let flightSuretyData = await FlightSuretyData.new();
                     let flightSuretyApp = await FlightSuretyApp.new(flightSuretyData.address);
                     await flightSuretyData.authorizeCaller(flightSuretyApp.address);
