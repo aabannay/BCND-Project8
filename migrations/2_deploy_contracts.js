@@ -1,5 +1,5 @@
-const FlightSuretyApp = artifacts.require("FlightSuretyApp");
 const FlightSuretyData = artifacts.require("FlightSuretyData");
+const FlightSuretyApp = artifacts.require("FlightSuretyApp", FlightSuretyData.address);
 const fs = require('fs');
 
 module.exports = function(deployer) {
@@ -16,7 +16,10 @@ module.exports = function(deployer) {
                             appAddress: FlightSuretyApp.address
                         }
                     };
-
+                    let flightSuretyData = await FlightSuretyData.new();
+                    let flightSuretyApp = await FlightSuretyApp.new(flightSuretyData.address);
+                 
+                 
                     await fs.writeFile(__dirname + '/../src/dapp/config.json',JSON.stringify(config, null, '\t'), 'utf-8', function (err, data) {});
                     await fs.writeFile(__dirname + '/../src/server/config.json',JSON.stringify(config, null, '\t'), 'utf-8', function (err, data) {});
                 });
