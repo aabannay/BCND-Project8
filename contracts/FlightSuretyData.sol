@@ -171,10 +171,10 @@ contract FlightSuretyData {
 
 
     //flight key to insuree address
-    map(byte32 => address[]) private flightToInsureeMap; 
+    mapping(byte32 => address[]) private flightToInsureeMap; 
 
     //key of insuree and details to the policy of insurance
-    map(byte32 => InsurancePolicy) private insurances; 
+    mapping(byte32 => InsurancePolicy) private insurances; 
 
     struct InsurancePolicy {
         bool isInsured; 

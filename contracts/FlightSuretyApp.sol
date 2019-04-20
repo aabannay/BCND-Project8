@@ -126,7 +126,7 @@ contract FlightSuretyApp {
         //checking if airline is registered already to call and the new airline is not registered is done at the data contract side. 
         //check if you would need to go through the voting or not
         if(registeredAirlinesCount > REGISTER_WITHOUT_VOTING_LIMIT) {
-            flightSuretyData.registerAirline(callingAirline, newAirline)
+            resultOfRegisteration = flightSuretyData.registerAirline(callingAirline, newAirline);
         } else { //voting is required
             //check for votes
             resultOfRegisteration = true; 

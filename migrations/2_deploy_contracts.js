@@ -8,16 +8,23 @@ module.exports = function(deployer) {
     deployer.deploy(FlightSuretyData)
     .then(() => {
         return deployer.deploy(FlightSuretyApp)
-                .then(() => {
+                .tthen(async () => {
                     let config = {
                         localhost: {
-                            url: 'http://localhost:8545',
+                            url: 'ws://localhost:8545',
                             dataAddress: FlightSuretyData.address,
                             appAddress: FlightSuretyApp.address
                         }
-                    }
-                    fs.writeFileSync(__dirname + '/../src/dapp/config.json',JSON.stringify(config, null, '\t'), 'utf-8');
-                    fs.writeFileSync(__dirname + '/../src/server/config.json',JSON.stringify(config, null, '\t'), 'utf-8');
+                    };
+
+                    accounts = await web3.eth.getAccounts();
+                    let flightSuretyData = await FlightSuretyData.new();
+                    let flightSuretyApp = await FlightSuretyApp.new(flightSuretyData.address);
+                    await flightSuretyData.authorizeCaller(flightSuretyApp.address);
+
+
+                    await fs.writeFile(__dirname + '/../src/dapp/config.json',JSON.stringify(config, null, '\t'), 'utf-8', function (err, data) {});
+                    await fs.writeFile(__dirname + '/../src/server/config.json',JSON.stringify(config, null, '\t'), 'utf-8', function (err, data) {});
                 });
     });
-}
+};
