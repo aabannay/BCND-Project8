@@ -40,7 +40,8 @@ contract('Oracles', async (accounts) => {
     let timestamp = Math.floor(Date.now() / 1000);
 
     // Submit a request for oracles to get status information for a flight
-    await config.flightSuretyApp.fetchFlightStatus(config.firstAirline, flight, timestamp);
+    let firstAirline = accounts[0];
+    await config.flightSuretyApp.fetchFlightStatus(firstAirline/*config.firstAirline*/, flight, timestamp);
     // ACT
 
     // Since the Index assigned to each test account is opaque by design
