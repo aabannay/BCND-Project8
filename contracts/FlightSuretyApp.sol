@@ -107,11 +107,23 @@ contract FlightSuretyApp {
     uint256 private REGISTER_WITHOUT_VOTING_LIMIT = 4; 
     
     //number of airlines registered so far
-    uint256 private registeredAirlinesCount = 0; 
+    uint256 /*private*/ registeredAirlinesCount; 
     
     //mapping between airlines voting 
-    mapping(address => address[]) private votes; 
+    mapping(address => address[]) /*private*/ votes; 
 
+    //++++++++++++++++++++++++++++++++++++++++++++++++
+    //tempurary code to get the actual votes
+    
+    function getVotes(address ad) external returns(uint256){
+        return votes[ad].length;
+    }
+
+    function getAirlinesCount() external returns(uint256) {
+        return registeredAirlinesCount; 
+    }
+    
+    //++++++++++++++++++++++++++++++++++++++++++++++++
    /**
     * @dev Add an airline to the registration queue
     *
@@ -128,7 +140,7 @@ contract FlightSuretyApp {
         votesCount = 0; 
         //checking if airline is registered already to call and the new airline is not registered is done at the data contract side. 
         //check if you would need to go through the voting or not
-        if(registeredAirlinesCount > REGISTER_WITHOUT_VOTING_LIMIT) {
+        if(registeredAirlinesCount < REGISTER_WITHOUT_VOTING_LIMIT) {
             resultOfRegisteration = flightSuretyData.registerAirline(msg.sender, newAirline);
         } else { //voting is required
             //check for votes that are doblicated
@@ -228,6 +240,16 @@ contract FlightSuretyApp {
         emit OracleRequest(index, airline, flight, timestamp);
     } 
 
+    //method to call fund
+    function fundAirline(
+                            address airline
+                        )
+                        external
+                        payable
+                        requireIsOperational()
+    {
+        flightSuretyData.fundAirline.value(msg.value) (airline);
+    }
 
 // region ORACLE MANAGEMENT
 
@@ -402,8 +424,8 @@ contract FlightSuretyApp {
 
 }   
 
-//signatures of the data contract
 
+//signatures of the data contract
 contract FlightSuretyData {
     function isOperational() public view returns(bool);
     function registerAirline(address callingAirline, address newAirline ) external returns(bool);
@@ -412,4 +434,5 @@ contract FlightSuretyData {
     function checkAirlineValidity(address airline) external returns (bool result);
     function creditInsurees (address airline, string flight, uint256 timeOfFlight) external returns (bool result);
     function isAirline(address airline) external view returns (bool result);
+    function fundAirline (address airline) external payable;
 }

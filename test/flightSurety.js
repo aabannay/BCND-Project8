@@ -80,7 +80,7 @@ contract('Flight Surety Tests', async (accounts) => {
     try {
 
         await config.flightSuretyData.authorizeCaller(firstAirline, {from: config.owner})
-        await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+        await config.flightSuretyApp.registerAirline(newAirline, {from: firstAirline});
     }
     catch(e) {
 
@@ -91,6 +91,53 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
 
   });
- 
+
+  //Only existing airline may register a new airline until there are at least four airlines registered
+  it('perform multi-party concensus mechnaism for registering above 4 flights', async () => {
+
+    //list of airlines to participate in the concensus
+    let airline1 = accounts[5];
+    let airline2 = accounts[6];
+    let airline3 = accounts[7];
+    let airline4 = accounts[8];
+    let airline5 = accounts[9];
+
+    //the first airline was registered when the Data contract was deployed (owner i.e. accounts[0])
+    let firstAirline = accounts[0]; //owner
+
+    //fund first airline
+    try {
+        await config.flightSuretyApp.fundAirline(firstAirline, {from: firstAirline, value: 10}); 
+    } catch(e) {
+        console.log('could not fund first airline!');
+    }
+    
+
+    //since the first airline is registered and funded, register the new airlines (up to 4 then consensus should start executing)
+    try {
+        let count = 0; 
+        await config.flightSuretyApp.registerAirline(airline1, {from: firstAirline});
+        await config.flightSuretyApp.registerAirline(airline2, {from: firstAirline});
+        await config.flightSuretyApp.registerAirline(airline3, {from: firstAirline});
+        await config.flightSuretyApp.registerAirline(airline4, {from: firstAirline});
+        await config.flightSuretyApp.registerAirline(airline5, {from: firstAirline});
+    } catch(e) {
+        console.log('Error while registering airlines');
+    }
+    
+    //check airlines added successfully. 
+    let result1 = await config.flightSuretyData.isAirline.call(airline1); 
+    let result2 = await config.flightSuretyData.isAirline.call(airline2); 
+    let result3 = await config.flightSuretyData.isAirline.call(airline3); 
+    let result4 = await config.flightSuretyData.isAirline.call(airline4); 
+    let result5 = await config.flightSuretyData.isAirline.call(airline5);
+
+    //all should be registered except airline4
+    assert.equal(result1, true, "Airline 1 should be registered");
+    assert.equal(result2, true, "Airline 2 should be registered");
+    assert.equal(result3, true, "Airline 3 should be registered");
+    assert.equal(result4, true, "Airline 4 should not be registered because of low votes!");
+    assert.equal(result5, true, "Airline 5 should not be registered because of low votes!");
+  });
 
 });

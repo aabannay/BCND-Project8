@@ -163,11 +163,14 @@ contract FlightSuretyData {
                             address airline
                         )
                         external
+                        payable
                         requireIsOperational()
                         isAuthorizedCaller()
     {
         //ensure the airline you are trying to fund is  a registered airline
         require(airlines[airline].isRegistered, "The airline you are trying to fund is not registered airline");
+        require(msg.value >= 10, "Airline must fund 10 ether");
+
         //fund the airline
         airlines[airline].paidFund = true; 
     }
@@ -384,6 +387,7 @@ contract FlightSuretyData {
                     isAuthorizedCaller()
                     returns (bool result)
     {
+        result = false; 
         result = airlines[airline].isRegistered;
         return result; 
     }
