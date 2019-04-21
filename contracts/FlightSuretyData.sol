@@ -32,10 +32,11 @@ contract FlightSuretyData {
         //since the registeration of airline must happen through an airline
         //and the registeration method can only be called by a registered airline
         
-        //airlines[theFirstAirline].isRegistered = true;
+        //the first airline registered is the contract owner. 
+        airlines[contractOwner].isRegistered = true;
         
         //however the first airline has not not paid funds yet. 
-        //airlines[theFirstAirline].paidFund = false; 
+        airlines[contractOwner].paidFund = false; 
     }
 
     /********************************************************************************************/
@@ -384,7 +385,6 @@ contract FlightSuretyData {
                     returns (bool result)
     {
         result = airlines[airline].isRegistered;
-
         return result; 
     }
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
