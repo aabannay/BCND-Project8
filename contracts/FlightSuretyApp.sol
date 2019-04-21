@@ -111,7 +111,7 @@ contract FlightSuretyApp {
     
     //mapping between airlines voting 
     mapping(address => address[]) private votes; 
-+
+
    /**
     * @dev Add an airline to the registration queue
     *
@@ -146,7 +146,7 @@ contract FlightSuretyApp {
                 votes[newAirline].push(msg.sender);
 
                 //now check if you reached the consensus (50%)
-                if (votes[newAirline].length > registeredAirlinesCount.div(2)) {
+                if (votes[newAirline].length >= registeredAirlinesCount.div(2)) {
                     resultOfRegisteration = flightSuretyData.registerAirline(msg.sender, newAirline);
                 }
             
