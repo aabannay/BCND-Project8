@@ -107,23 +107,11 @@ contract FlightSuretyApp {
     uint256 private REGISTER_WITHOUT_VOTING_LIMIT = 4; 
     
     //number of airlines registered so far
-    uint256 /*private*/ registeredAirlinesCount; 
+    uint256 private registeredAirlinesCount; 
     
     //mapping between airlines voting 
-    mapping(address => address[]) /*private*/ votes; 
-
-    //++++++++++++++++++++++++++++++++++++++++++++++++
-    //tempurary code to get the actual votes
-    
-    function getVotes(address ad) external returns(uint256){
-        return votes[ad].length;
-    }
-
-    function getAirlinesCount() external returns(uint256) {
-        return registeredAirlinesCount; 
-    }
-    
-    //++++++++++++++++++++++++++++++++++++++++++++++++
+    mapping(address => address[]) private votes; 
++
    /**
     * @dev Add an airline to the registration queue
     *
@@ -166,7 +154,7 @@ contract FlightSuretyApp {
 
         //if an airline is registered increase the count of reigstered airlines. 
         if (resultOfRegisteration) {
-            registeredAirlinesCount.add(1);
+            registeredAirlinesCount = registeredAirlinesCount.add(1);
         }
 
         return (resultOfRegisteration, votesCount);

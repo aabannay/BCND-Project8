@@ -136,8 +136,7 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(result1, true, "Airline 1 should be registered");
     assert.equal(result2, true, "Airline 2 should be registered");
     assert.equal(result3, true, "Airline 3 should be registered");
-    assert.equal(result4, true, "Airline 4 should not be registered because of low votes!");
-    assert.equal(result5, true, "Airline 5 should not be registered because of low votes!");
+    assert.equal(result4, false, "Airline 4 should not be registered because of low votes!");
   });
 
 });
