@@ -16,8 +16,10 @@ export default class DOM {
     static span = (...args) => DOM.makeElement(`span`, ...args);
     static img = (...args) => DOM.makeElement(`img`, ...args);
     static td = (...args) => DOM.makeElement(`td`, ...args);
+    //add new elements 
     static flightsSelection =  document.querySelector(`#flights-selector`);
     static airlinesSelection = document.querySelector(`#airlines-selector`);
+    static ethAmount = document.getElementById('#ether-value');
     static attributeExceptions = [
       `role`,
     ];

@@ -239,6 +239,19 @@ contract FlightSuretyApp {
         flightSuretyData.fundAirline.value(msg.value) (airline);
     }
 
+    function buy(
+                address insuree, 
+                address airline, 
+                string flight, 
+                uint256 timeOfFlight, 
+                uint256 insuranceValue
+            )
+            external
+            payable
+            requireIsOperational()
+    {
+        flightSuretyData.buy(insuree, airline, flight, timeOfFlight, insuranceValue);
+    }
 // region ORACLE MANAGEMENT
 
     // Incremented to add pseudo-randomness at various points
@@ -413,11 +426,13 @@ contract FlightSuretyApp {
 }   
 
 
+
+
 //signatures of the data contract
 contract FlightSuretyData {
     function isOperational() public view returns(bool);
     function registerAirline(address callingAirline, address newAirline ) external returns(bool);
-    function buy(address insuree, address airline, string flight, uint256 timeOfFlight, uint256 insuraceValue) external; 
+    function buy(address insuree, address airline, string flight, uint256 timeOfFlight, uint256 insuranceValue) external; 
     //TODO add other signatures here..
     function checkAirlineValidity(address airline) external returns (bool result);
     function creditInsurees (address airline, string flight, uint256 timeOfFlight) external returns (bool result);
