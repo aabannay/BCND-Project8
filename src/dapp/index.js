@@ -13,6 +13,35 @@ import './flightsurety.css';
         // Read transaction
         contract.isOperational((error, result) => {
             console.log(error,result);
+            console.log('inside isoperational');
+
+            //airlines selectino
+            contract.airlines.forEach(airline => {
+                console.log(airline);
+                let element = document.createElement("option");
+                element.text = `${airline.address}`;
+                element.value = JSON.stringify(airline);
+                DOM.airlinesSelection.add(element);
+            })
+            
+            //based on selected airlines, display flights and their info?
+            DOM.airlinesSelection.addEventListener('change',function(){
+                alert('changed');
+                contract.flights.forEach(flight => {
+                    if( flight.airline == airlinesSelection.value) {
+                        let element = document.createElement("option");
+                        element.text = `${flight}`;
+                        element.value = JSON.stringify(flight);
+                        DOM.flightsSelection.add(element);
+                    }
+                })
+            });
+
+            //check listening to the flights selection works?
+            DOM.flightsSelection.addEventListener('change',function(){
+                alert('changed');
+            });
+            
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
     
@@ -20,6 +49,7 @@ import './flightsurety.css';
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
             let flight = DOM.elid('flight-number').value;
+            console.log('clicked');
             // Write transaction
             contract.fetchFlightStatus(flight, (error, result) => {
                 display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);

@@ -7,7 +7,7 @@ export default class Contract {
     constructor(network, callback) {
 
         let config = Config[network];
-        this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
+        this.web3 = new Web3(new Web3.providers.WebsocketProvider(config.url));
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress, config.dataAddress);
         //initialize data app
         this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
@@ -15,23 +15,50 @@ export default class Contract {
         this.owner = null;
         this.airlines = [];
         this.passengers = [];
+        this.flights = [];
+        this.appAddress = config.appAddress;
     }
 
     initialize(callback) {
-        this.web3.eth.getAccounts((error, accts) => {
+        this.web3.eth.getAccounts(async (error, accts) => {
            
             this.owner = accts[0];
-
+            
             let counter = 1;
             
             while(this.airlines.length < 5) {
-                this.airlines.push(accts[counter++]);
+                this.airlines.push({
+                                    address: accts[counter++],
+                                    isRegstered: false, 
+                                    isPaid: false
+                                    });
             }
+            console.log(this.airlines);
 
             while(this.passengers.length < 5) {
-                this.passengers.push(accts[counter++]);
+                this.passengers.push({
+                                    address: accts[counter++]
+                                    });
             }
+            console.log(this.passengers);
+            
+            // register random flights, one for each airline
+            for (let i=0; i <5; i++){
+                this.flights.push({
+                                    airline: this.airlines[i],
+                                    code: `XX${i}XX`,
+                                    timestamp: 123456789
+                                });
+            }
+            console.log('here');
+            console.log(this.flights);
 
+            //first register App Contract as an authorized caller.
+            try {
+                await this.flightSuretyData.methods.authorizeCaller(this.appAddress).send({"from":this.owner});
+            } catch(e) {
+                console.log(e);
+            }
             callback();
         });
     }

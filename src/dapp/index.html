@@ -21,11 +21,25 @@
 
     <main class="container">
 
-        <div id="display-wrapper" class="top-20">
+        <div id="display-wrapper" style="margin: 10px">
+            <label> Airlines
+                <select id="airlines-selector"></select>
+            </label>
         </div>
-        <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+        <div style="margin: 10px">
+            <label> Flight
+                <select id="flights-selector"></select>
+            </label> 
+            
+            <button class="btn btn-primary" class="btn btn-primary" id="submit-oracle">Submit to Oracles</button>
         </div>
+
+        <div style="margin: 10px;">
+            <label>Value [Eth] <input id="ether-value" type="number" min="0" max="1" step="0.01">
+            </label>
+            <button class="btn btn-primary" id="buying-button">Buy Insurance</button>
+        </div>
+
     </main>
 
 </body>

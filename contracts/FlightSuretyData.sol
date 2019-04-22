@@ -391,6 +391,19 @@ contract FlightSuretyData {
         result = airlines[airline].isRegistered;
         return result; 
     }
+
+    /*
+    function getAirlines(
+
+                        )
+                         external
+                         view
+                         requireIsOperational()
+                         isAuthorizedCaller()
+    {
+        return airlines[];
+    }
+    */
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

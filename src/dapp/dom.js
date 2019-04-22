@@ -16,6 +16,8 @@ export default class DOM {
     static span = (...args) => DOM.makeElement(`span`, ...args);
     static img = (...args) => DOM.makeElement(`img`, ...args);
     static td = (...args) => DOM.makeElement(`td`, ...args);
+    static flightsSelection =  document.querySelector(`#flights-selector`);
+    static airlinesSelection = document.querySelector(`#airlines-selector`);
     static attributeExceptions = [
       `role`,
     ];
