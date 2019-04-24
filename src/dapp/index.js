@@ -12,8 +12,8 @@ import './flightsurety.css';
 
         // Read transaction
         contract.isOperational((error, result) => {
-            console.log(error,result);
-            console.log('inside isoperational');
+            //console.log(error,result);
+            //console.log('inside isoperational');
 
             //airlines selection
 
@@ -26,7 +26,7 @@ import './flightsurety.css';
             
             //add all available airlines
             contract.airlines.forEach(airline => {
-                console.log(airline);
+                //console.log(airline);
                 let element = document.createElement("option");
                 element.text = `${airline.address}`;
                 element.value = JSON.stringify(airline);
@@ -44,7 +44,7 @@ import './flightsurety.css';
                     //then add flights for the selected airline
                     contract.flights.forEach(flight => {
                     if( flight.airline.address == JSON.parse(DOM.airlinesSelection.value).address) {
-                        console.log(true);
+                        //console.log(true);
                         let element = document.createElement("option");
                         element.text = `${flight.code}`;
                         element.value = JSON.stringify(flight); 

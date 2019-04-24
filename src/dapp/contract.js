@@ -17,51 +17,142 @@ export default class Contract {
         this.passengers = [];
         this.flights = [];
         this.appAddress = config.appAddress;
+        this.accounts= [];
     }
 
     initialize(callback) {
         this.web3.eth.getAccounts(async (error, accts) => {
             let self = this;
             this.owner = accts[0];
+            this.accounts = accts; 
+            //initialize the blockchain with airlines
+            
             await this.flightSuretyData.methods.authorizeCaller(this.appAddress).send({
                 "from":this.owner
             }, (err, x) => {
                 if (!err) {
-                    let counter = 1;
 
-                    while(this.airlines.length < 5) {
+                    //counter starting from 0 here because the first registered airline when the contract was created is accounts[0] i.e. the owner of the contract. 
+                    let counter = 0;
+                    console.log(this.accounts);
+                    while(this.airlines.length < 2 /* only the first airline and another airline that will be registered and funded below */) {
                         this.airlines.push({
                             address: accts[counter++],
                             isRegstered: false,
                             isPaid: false
                         });
                     }
-                    console.log(this.airlines);
+                    //console.log(this.airlines);
 
-                    while(this.passengers.length < 5) {
+                    while(this.passengers.length < 2 /* Match the number of airlines above */) {
                         this.passengers.push({
                             address: accts[counter++]
                         });
                     }
-                    console.log(this.passengers);
+                    //console.log(this.passengers);
 
                     // register random flights, one for each airline
-                    for (let i=0; i <5; i++){
+                    for (let i=0; i <2 /* match the number of airlines */; i++){
                         this.flights.push({
                             airline: this.airlines[i],
                             code: `XX${i}XX`,
                             timestamp: 123456789
                         });
                     }
-                    console.log('here');
-                    console.log(this.flights);
+                    this.fund(accts[0],(error, result) => {
+                        if(error) {
+                            console.log(error);
+                        } else {
+                            console.log(`funded ${accts[0]} successfully`, result);
+                            self.airlines
+                        }
+                    });
+                    //now start registering the remaining airlines and flights
 
-                    //first register App Contract as an authorized caller.
+                    //register airlines (airlines have accounts[1-5])
+                    
 
-                    callback();
+                    //for (let i=0; i <airlines.length; i++) {
+                    //for was problematic to be used with the async code so I decided to do this manually. 
+                        console.log('inside for');
+                        let self=this; 
+
+                        //airlines[0]
+                        this.registerAirline(self.airlines[1].address, accts[0], (error, result) => {
+                            if(error) {
+                                console.log(`Could not register airline ${self.airlines[1].address}`, error);
+                            } else {
+                                console.log(`Registered airline ${self.airlines[1].address} successfully`, result);
+                                self.airlines[0].isRegstered = true;
+                            }
+                        });
+
+                        this.fund(self.airlines[1].address,(error, result) => {
+                            if(error) {
+                                console.log(error);
+                            } else {
+                                console.log(`funded ${self.airlines[1].address} successfully`, result);
+                            }
+                        });
+
+                        /* //COMMENTED OUT ADDING OF THE REST OF THE AIRLINES
+                           //this was due to the ocmplication of handling multi-votes prior to funding an airline. 
+                        //airlines[1]
+                        this.registerAirline(self.airlines[1].address, accts[0], (error, result) => {
+                            if(error) {
+                                console.log(`Could not register airline ${self.airlines[1].address}`, error);
+                            } else {
+                                console.log(`Registered airline ${self.airlines[1].address} successfully`, result);
+                            }
+                        });
+
+                        //airlines[2]
+                        this.registerAirline(self.airlines[2].address, accts[0], (error, result) => {
+                            if(error) {
+                                console.log(`Could not register airline ${self.airlines[2].address}`, error);
+                            } else {
+                                console.log(`Registered airline ${self.airlines[2].address} successfully`, result);
+                            }
+                        });
+
+                        //airlines[3]
+                        this.registerAirline(self.airlines[3].address, accts[0], (error, result) => {
+                            if(error) {
+                                console.log(`Could not register airline ${self.airlines[3].address}`, error);
+                            } else {
+                                console.log(`Registered airline ${self.airlines[3].address} successfully`, result);
+                            }
+                        });
+
+                        //airlines[4]
+                        this.registerAirline(self.airlines[4].address, accts[0], (error, result) => {
+                            if(error) {
+                                console.log(`Could not register airline ${self.airlines[4].address}`, error);
+                            } else {
+                                console.log(`Registered airline ${self.airlines[4].address} successfully`, result);
+                            }
+                        });
+                        */
+                    //}
+                    
                 }
-
+                callback();
             });
+        });
+    }
+ 
+    //this method is used to register an airlines
+    registerAirline(address, account, callback) {
+        let self = this; 
+        self.flightSuretyApp.methods.registerAirline(address).send({from: self.owner, gas: 5555555}, (error, result) =>{
+            callback(error, result);
+        });
+    }
+    //this method is used to fund the airlines.
+    fund(address, callback){
+        let self = this; 
+        self.flightSuretyApp.methods.fundAirline(address).send({from: address, value: self.web3.utils.toWei("10","ether")}, (err, result) => {
+            callback(err, result);
         });
     }
 
@@ -79,7 +170,7 @@ export default class Contract {
             flight: flight.code,
             timestamp: Math.floor(Date.now() / 1000)
         } 
-        console.log('payload',payload);
+        //console.log('payload',payload);
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
             .send({ from: self.owner}, (error, result) => {
@@ -97,7 +188,7 @@ export default class Contract {
                 return; 
             } else {
                 //call the contract buy method
-                this.flightSuretyApp.methods.buy(flight, )
+                //this.flightSuretyApp.methods.buy(flight, )
             }
         //not known insurance value
         } else {
