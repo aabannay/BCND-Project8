@@ -31,7 +31,7 @@ export default class Contract {
                 "from":this.owner
             }, (err, x) => {
                 if (!err) {
-
+                    
                     //counter starting from 0 here because the first registered airline when the contract was created is accounts[0] i.e. the owner of the contract. 
                     let counter = 0;
                     console.log(this.accounts);
@@ -68,6 +68,7 @@ export default class Contract {
                             self.airlines[0].isPaid = true; 
                         }
                     });
+                    
                     //now start registering the remaining airlines and flights
 
                     //register airlines (airlines have accounts[1-5])
@@ -78,7 +79,8 @@ export default class Contract {
                         console.log('inside for');
                         let self=this; 
 
-                        //airlines[0]
+                        //since airlines[0] has been registered and funded now do the rest
+                        //register airlines[1]
                         this.registerAirline(self.airlines[1].address, accts[0], (error, result) => {
                             if(error) {
                                 console.log(`Could not register airline ${self.airlines[1].address}`, error);
@@ -87,7 +89,7 @@ export default class Contract {
                                 self.airlines[1].isRegstered = true;
                             }
                         });
-
+                        // found airlines[1]
                         this.fund(self.airlines[1].address,(error, result) => {
                             if(error) {
                                 console.log(error);
@@ -136,7 +138,30 @@ export default class Contract {
                         });
                         */
                     //}
-                    
+
+                    //register the flights associated with airlines
+
+                    //flight 1 for airline 0
+                    try {
+                        this.registerFlight(self.flights[0].airline.address, self.flights[0].code, self.flights[0].timestamp, (error, result) => {
+                            if (error) {
+                                console.log(`Couldn't register flight ${self.flights[0].code}`, error);
+                            } else {
+                                console.log(`Registered flight ${self.flights[0].code} successfully.`, result);
+                            }
+                        })
+    
+                        //flight 1 for airline 1 
+                        this.registerFlight(self.flights[1].airline.address, self.flights[1].code, self.flights[1].timestamp, (error, result) => {
+                            if (error) {
+                                console.log(`Couldn't register flight ${self.flights[1].code}`, error);
+                            } else {
+                                console.log(`Registered flight ${self.flights[1].code} successfully.`, result);
+                            }
+                        })
+                    } catch (e) {
+                        console.log(e);
+                    }  
                 }
                 callback();
             });
@@ -156,6 +181,16 @@ export default class Contract {
         self.flightSuretyApp.methods.fundAirline(address).send({from: address, value: self.web3.utils.toWei("10","ether")}, (err, result) => {
             callback(err, result);
         });
+    }
+
+    //this method is used to register a flight 
+    registerFlight(airline, flightCode, timeOfFlight, callback) {
+        let self = this; 
+        self.flightSuretyApp.methods.registerFlight(airline, flightCode, timeOfFlight)
+                                    .send({from: self.owner, gas: 5555555},
+                                    (error, result) => {
+                                        callback(error, result);
+                                    });
     }
 
     isOperational(callback) {
@@ -184,7 +219,7 @@ export default class Contract {
     buy(passenger, airline, flight, timestamp, value, callback) {
         let insuranceValue = value; 
         if (insuranceValue) {
-            //accepted ether value of 1 Ether only!\
+            //accepted ether value of 1 Ether only!
             if (insuranceValue > 1) {
                 console.log('insurance value cannot be more than 1 Ether!');
                 return; 

@@ -12,7 +12,7 @@ import './flightsurety.css';
 
         // Read transaction
         contract.isOperational((error, result) => {
-            //console.log(error,result);
+            console.log(error,result);
             //console.log('inside isoperational');
 
             //airlines selection
@@ -34,6 +34,13 @@ import './flightsurety.css';
 
             })
             
+            //first add an empty element to the airlines list
+            let passengerSelect = document.createElement("option");
+            passengerSelect.text = 'Select passenger';
+            passengerSelect.value = null; 
+            passengerSelect.selected = true; 
+            DOM.passengerSelection.add(passengerSelect);
+
             //add all available passengers
             contract.passengers.forEach(passenger => {
                 //console.log(airline);
@@ -41,7 +48,7 @@ import './flightsurety.css';
                 element.text = `${passenger.address}`;
                 element.value = JSON.stringify(passenger);
                 DOM.passengerSelection.add(element);
-            })
+            });
 
             //based on selected airlines, display flights and their info?
             DOM.airlinesSelection.addEventListener('change',function(){
