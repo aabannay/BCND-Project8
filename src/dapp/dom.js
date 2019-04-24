@@ -19,6 +19,7 @@ export default class DOM {
     //add new elements 
     static flightsSelection =  document.querySelector(`#flights-selector`);
     static airlinesSelection = document.querySelector(`#airlines-selector`);
+    static passengerSelection = document.querySelector(`#passengers-selector`);
     static ethAmount = document.getElementById('#ether-value');
     static attributeExceptions = [
       `role`,

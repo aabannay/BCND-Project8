@@ -32,9 +32,17 @@ import './flightsurety.css';
                 element.value = JSON.stringify(airline);
                 DOM.airlinesSelection.add(element);
 
-                //add the 
             })
             
+            //add all available passengers
+            contract.passengers.forEach(passenger => {
+                //console.log(airline);
+                let element = document.createElement("option");
+                element.text = `${passenger.address}`;
+                element.value = JSON.stringify(passenger);
+                DOM.passengerSelection.add(element);
+            })
+
             //based on selected airlines, display flights and their info?
             DOM.airlinesSelection.addEventListener('change',function(){
                 //check if the selected airline is not the select airline text

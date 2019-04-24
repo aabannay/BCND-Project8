@@ -44,7 +44,7 @@ export default class Contract {
                     }
                     //console.log(this.airlines);
 
-                    while(this.passengers.length < 2 /* Match the number of airlines above */) {
+                    while(this.passengers.length < 5 /* Doesn't have to match airlines */) {
                         this.passengers.push({
                             address: accts[counter++]
                         });
@@ -64,7 +64,8 @@ export default class Contract {
                             console.log(error);
                         } else {
                             console.log(`funded ${accts[0]} successfully`, result);
-                            self.airlines
+                            self.airlines[0].isRegstered = true; 
+                            self.airlines[0].isPaid = true; 
                         }
                     });
                     //now start registering the remaining airlines and flights
@@ -83,7 +84,7 @@ export default class Contract {
                                 console.log(`Could not register airline ${self.airlines[1].address}`, error);
                             } else {
                                 console.log(`Registered airline ${self.airlines[1].address} successfully`, result);
-                                self.airlines[0].isRegstered = true;
+                                self.airlines[1].isRegstered = true;
                             }
                         });
 
@@ -92,6 +93,7 @@ export default class Contract {
                                 console.log(error);
                             } else {
                                 console.log(`funded ${self.airlines[1].address} successfully`, result);
+                                self.airlines[1].isPaid = true; 
                             }
                         });
 
@@ -179,16 +181,26 @@ export default class Contract {
     }
 
     //buying an insurance
-    buy(flight) {
-        let insuranceValue = DOM.ethAmount.value; 
+    buy(passenger, airline, flight, timestamp, value, callback) {
+        let insuranceValue = value; 
         if (insuranceValue) {
             //accepted ether value of 1 Ether only!\
             if (insuranceValue > 1) {
                 console.log('insurance value cannot be more than 1 Ether!');
                 return; 
             } else {
+                let self = this; 
+                let insuree = passenger; 
                 //call the contract buy method
-                //this.flightSuretyApp.methods.buy(flight, )
+                try {
+                    self.flightSuretyApp.methods.buy(insuree, airline, flight, timestamp, insuranceValue)
+                                            .send({from: insuree, value: this.web3.utils.toWei(insuranceValue,"ether") },
+                                            (error, result) => {
+                                                callback(error, result);
+                                            });
+                } catch(e) {
+                    console.log(e);
+                }
             }
         //not known insurance value
         } else {
