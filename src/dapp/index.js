@@ -98,9 +98,20 @@ import './flightsurety.css';
         // User buy insurance code
         DOM.elid('buying-button').addEventListener('click', () =>{
             //TODO what happens when the user purchases an insurance?
-            let flight = DOM.flightsSelection.value;
+            let flight = JSON.parse(DOM.flightsSelection.value);
             if (flight) {
-                contract.buy(flight);
+                console.log(flight);
+                let passenger = JSON.parse(DOM.passengerSelection.value);
+                let airline = flight.airline.address;
+                let value = DOM.ethAmount.value; 
+                console.log(passenger, airline, value);
+                contract.buy(passenger.address, airline, flight.code, flight.timestamp, value, (error, result) => {
+                    if (error) {
+                        console.log(`couldn't buy insurance`, error);
+                    } else {
+                        console.log(`could buy insurance`, result);
+                    }
+                });
             } else {
                 console.log('no flight selected');
             }

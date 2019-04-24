@@ -205,7 +205,7 @@ export default class Contract {
         let payload = {
             airline: flight.airline.address,
             flight: flight.code,
-            timestamp: Math.floor(Date.now() / 1000)
+            timestamp: flight.timestamp/*Math.floor(Date.now() / 1000)*/
         } 
         //console.log('payload',payload);
         self.flightSuretyApp.methods
@@ -228,8 +228,9 @@ export default class Contract {
                 let insuree = passenger; 
                 //call the contract buy method
                 try {
-                    self.flightSuretyApp.methods.buy(insuree, airline, flight, timestamp, insuranceValue)
-                                            .send({from: insuree, value: this.web3.utils.toWei(insuranceValue,"ether") },
+                    console.log('Wei value: ',this.web3.utils.toWei(insuranceValue,"ether"));
+                    self.flightSuretyApp.methods.buy(insuree, airline, flight, timestamp, this.web3.utils.toWei(insuranceValue,"ether"))
+                                            .send({from: insuree, value: this.web3.utils.toWei(insuranceValue,"ether"), gas:5555555 },
                                             (error, result) => {
                                                 callback(error, result);
                                             });
