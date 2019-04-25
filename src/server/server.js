@@ -4,6 +4,7 @@ import Config from './config.json';
 import Web3 from 'web3';
 import express from 'express';
 import { callbackify } from 'util';
+import { resolvePtr } from 'dns';
 
 
 let config = Config['localhost'];
@@ -20,112 +21,112 @@ const STATUS_CODE_LATE_WEATHER = 30;
 const STATUS_CODE_LATE_TECHNICAL = 40;
 const STATUS_CODE_LATE_OTHER = 50;
 
-
-//a list that will contain the registered oracles: 
-let registeredOracles = [];
-let indexes = []; 
-// //the below function is registering oracles to the blockchain
-async function registerOracles() {
-  //first get the accounts that we want to register oracles with: 
-  let accounts = await web3.eth.getAccounts();
-  console.log(accounts);
-
-  //get the registeration fee
-  let regFee = await flightSuretyApp.methods.REGISTRATION_FEE.call({from: accounts[0]});
-  console.log(`Registeration Fee: ${regFee}`);
-
-  //then go and regster the oracles from account 14 to account 39
-
-
-  for (let i=14; i<accounts.length; i++)  {
-    try {
-      //console.log('here1');
-      flightSuretyApp.methods.registerOracle().send({value: regFee, from: accounts[i], gas:5555555});
-      //console.log('here');
-      indexes = await flightSuretyApp.methods.getMyIndexes().call({from: accounts[i]});
-      registeredOracles.push([accounts[i], indexes]);
-      //console.log(indexes);
-      //console.log(registeredOracles);
-    } catch(e) {
-      console.log(`ERROR: could not register oracle: ${accounts[i]}`, e);
-    }
-  }
-  setTimeout(async() => { }, 3000);
+function initializeAccounts() {
+  return new Promise((resolve, reject) => {
+    web3.eth.getAccounts().then(accounts => {
+      console.log(accounts);
+      resolve(accounts);
+    }).catch(error => {
+      reject(error);
+    });
+  });
 }
 
-registerOracles();
-
-flightSuretyApp.events.OracleReport({
-  fromBlock: "latest"
-}, (error, event) => {
-  if (error) console.log(error);
-  console.log(event);
-
-})
-
-flightSuretyApp.events.FlightStatusInfo({
-  fromBlock: "latest"
-}, (error, event) => {
-  //console.log(event);
+function initializeOracles(accounts) {
+  return new Promise((resolve, reject) => {
+    let oracles = [];
+    console.log('here');
+    flightSuretyApp.methods.REGISTRATION_FEE.call({from: accounts[0]}).then(regFee => {
+      console.log('Registeration Fee: ',regFee);
+      let accList = accounts.slice(15);
+      let loopLength = accList.length; 
+      accList.forEach(account => {
+        console.log(account);
+        flightSuretyApp.methods.registerOracle().send({
+          "from": account,
+          "value": regFee,
+          "gas": 5555555
+      }).then(() => {
+          flightSuretyApp.methods.getMyIndexes().call({
+            "from": account
+        }).then(indexes => {
+            console.log(indexes);
+            oracles.push([account, indexes]);
+            //console.log(oracles);
+            console.log(1);
+            loopLength -= 1;
+            if (!loopLength) {
+                resolve(oracles);
+            }
+          }).catch(error => {
+            reject(error);
+        });
+      }).catch(error => {
+        reject(error);
+      });
+    });
+    }).catch(error => {
+      reject(error);
+    });
 });
+}
+initializeAccounts().then(accounts => {
+  initializeOracles(accounts).then(oracles => {
+    console.log(oracles);
+    console.log(0);
+    
+    //request event
+    flightSuretyApp.events.OracleRequest({
+      fromBlock: "latest"
+    }, function (error, event) {
+      if (error) console.log(error);
+      //console.log(event)
+      let index = event.returnValues.index; 
+      let airline = event.returnValues.airline; 
+      let flight = event.returnValues.flight; 
+      let timestamp = event.returnValues.timestamp; 
+      let status = Math.floor(Math.random() * 5) * 10;  //get random status [0,10,20,30,40,50]
+      console.log(`Oracle Request was submitted with the following:
+      Index: ${index}
+      Airline: ${airline}
+      Flight: ${flight}
+      Time: ${new Date(timestamp*1000)}
+      Status: ${status}`);
 
-flightSuretyApp.events.OracleRequest({
-    fromBlock: "latest"
-  }, function (error, event) {
-    if (error) console.log(error);
-    //console.log(event)
-    let index = event.returnValues.index; 
-    let airline = event.returnValues.airline; 
-    let flight = event.returnValues.flight; 
-    let timestamp = event.returnValues.timestamp; 
-    let status = Math.floor(Math.random() * 5) * 10;  //get random status [0,10,20,30,40,50]
-    console.log(`Oracle Request was submitted with the following:
-    Index: ${index}
-    Airline: ${airline}
-    Flight: ${flight}
-    Time: ${new Date(timestamp*1000)}
-    Status: ${status}`);
-
-    //now make an oracle response from here...
-    try {
-      for (let i=0; i<registeredOracles.length; i++) {
-        //console.log(oracle);
-        let indexes = registeredOracles[i][1];
-        //console.log(indexes);
-        for (let j=0; j< indexes.length; j++) {
-          if(indexes[j] == index) {
-            console.log(`match ${index} ${indexes[j]}`);
-            //try to submit an oracle response
-            try {
-              flightSuretyApp.methods.submitOracleResponse
+      //now respond if oracles match index 
+      oracles.forEach(oracle => {
+        console.log(oracle);
+        if (oracle[1][0] == index || oracle[1][1] == index || oracle[1][2] == index) {
+          console.log(`match`);
+          flightSuretyApp.methods.submitOracleResponse
               (
                   index,
                   airline,
                   flight,
                   timestamp,
                   status
-              ).send({from: registeredOracles[i][0]/* the address of the oracle */, gas: 5555555});
-            } catch(e) {
-              console.log('ERROR trying to submit oracle response!', e);
-            }
-          } else {
-            //console.log('no match');
-          }
+              ).send({from: oracle[0]/* the address of the oracle */, gas: 5555555}).then(result => {
+                console.log('XXXX');
+                console.log(1);
+                console.log(result);
+              }).catch(error => {
+                console.log(error);
+              });
         }
-      }
-    } catch(e) {
-      console.log('ERROR while trying to submit oracle response',e);
-    }
+      });
+  });
+}).catch(error => {
+  console.log(error);
 });
-
+}).catch(error => {
+  console.log(error);
+})
 
 const app = express();
 app.get('/api', (req, res) => {
     res.send({
-      message: 'An API for use with your Dapp!'
+      message: 'An API for use with your Dapp'
     })
 })
 
 export default app;
-
-
