@@ -19,7 +19,11 @@ const STATUS_CODE_LATE_AIRLINE = 20;
 const STATUS_CODE_LATE_WEATHER = 30;
 const STATUS_CODE_LATE_TECHNICAL = 40;
 const STATUS_CODE_LATE_OTHER = 50;
-  
+
+
+//a list that will contain the registered oracles: 
+let registeredOracles = [];
+let indexes = []; 
 // //the below function is registering oracles to the blockchain
 async function registerOracles() {
   //first get the accounts that we want to register oracles with: 
@@ -38,14 +42,15 @@ async function registerOracles() {
       //console.log('here1');
       flightSuretyApp.methods.registerOracle().send({value: regFee, from: accounts[i], gas:5555555});
       //console.log('here');
-      let indexes = await flightSuretyApp.methods.getMyIndexes().call({from: accounts[i]});
-      console.log(indexes);
+      indexes = await flightSuretyApp.methods.getMyIndexes().call({from: accounts[i]});
+      registeredOracles.push([accounts[i], indexes]);
+      //console.log(indexes);
+      //console.log(registeredOracles);
     } catch(e) {
       console.log(`ERROR: could not register oracle: ${accounts[i]}`, e);
     }
   }
-  setTimeout(() => {}, 3000);
-    
+  setTimeout(async() => { }, 3000);
 }
 
 registerOracles();
@@ -55,7 +60,50 @@ flightSuretyApp.events.OracleRequest({
   }, function (error, event) {
     if (error) console.log(error)
     //console.log(event)
+    let index = event.returnValues.index; 
+    let airline = event.returnValues.airline; 
+    let flight = event.returnValues.flight; 
+    let timestamp = event.returnValues.timestamp; 
+    let status = Math.floor(Math.random() * 5) * 10;  //get random status [0,10,20,30,40,50]
+    console.log(`Oracle Request was submitted with the following:
+    Index: ${index}
+    Airline: ${airline}
+    Flight: ${flight}
+    Time: ${new Date(timestamp*1000)}
+    Status: ${status}`);
+
+    //now make an oracle response from here...
+    try {
+      registeredOracles.forEach((oracle) => {
+        //console.log(oracle);
+        let indexes = oracle[1];
+        //console.log(indexes);
+        indexes.forEach((ind) => {
+          if(ind == index) {
+            console.log(`match ${typeof(index)} ${typeof(ind)}`);
+            //try to submit an oracle response
+            try {
+              flightSuretyApp.methods.submitOracleResponse
+              (
+                  index,
+                  airline,
+                  flight,
+                  timestamp,
+                  status
+              ).send({from: oracle[0]/* the address of the oracle */, gas: 5555555});
+            } catch(e) {
+              console.log('ERROR trying to submit oracle response!', e);
+            }
+          } else {
+            console.log('no match');
+          }
+        });
+      });
+    } catch(e) {
+      console.log('ERROR while trying to submit oracle response',e);
+    }
 });
+
 
 const app = express();
 app.get('/api', (req, res) => {
