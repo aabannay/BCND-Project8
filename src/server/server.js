@@ -55,10 +55,24 @@ async function registerOracles() {
 
 registerOracles();
 
+flightSuretyApp.events.OracleReport({
+  fromBlock: "latest"
+}, (error, event) => {
+  if (error) console.log(error);
+  console.log(event);
+
+})
+
+flightSuretyApp.events.FlightStatusInfo({
+  fromBlock: "latest"
+}, (error, event) => {
+  //console.log(event);
+});
+
 flightSuretyApp.events.OracleRequest({
-    fromBlock: 0
+    fromBlock: "latest"
   }, function (error, event) {
-    if (error) console.log(error)
+    if (error) console.log(error);
     //console.log(event)
     let index = event.returnValues.index; 
     let airline = event.returnValues.airline; 
@@ -74,13 +88,13 @@ flightSuretyApp.events.OracleRequest({
 
     //now make an oracle response from here...
     try {
-      registeredOracles.forEach((oracle) => {
+      for (let i=0; i<registeredOracles.length; i++) {
         //console.log(oracle);
-        let indexes = oracle[1];
+        let indexes = registeredOracles[i][1];
         //console.log(indexes);
-        indexes.forEach((ind) => {
-          if(ind == index) {
-            console.log(`match ${typeof(index)} ${typeof(ind)}`);
+        for (let j=0; j< indexes.length; j++) {
+          if(indexes[j] == index) {
+            console.log(`match ${index} ${indexes[j]}`);
             //try to submit an oracle response
             try {
               flightSuretyApp.methods.submitOracleResponse
@@ -90,15 +104,15 @@ flightSuretyApp.events.OracleRequest({
                   flight,
                   timestamp,
                   status
-              ).send({from: oracle[0]/* the address of the oracle */, gas: 5555555});
+              ).send({from: registeredOracles[i][0]/* the address of the oracle */, gas: 5555555});
             } catch(e) {
               console.log('ERROR trying to submit oracle response!', e);
             }
           } else {
-            console.log('no match');
+            //console.log('no match');
           }
-        });
-      });
+        }
+      }
     } catch(e) {
       console.log('ERROR while trying to submit oracle response',e);
     }
