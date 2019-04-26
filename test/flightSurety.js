@@ -209,7 +209,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
     //show balance before buying: 
     let beforeBalance = await web3.eth.getBalance(passenger1)
-    console.log(beforeBalance);
+    //console.log(beforeBalance);
 
     let insuranceValue = 1;
     //try block for buying insurance
@@ -221,14 +221,17 @@ contract('Flight Surety Tests', async (accounts) => {
 
     //show balance after buying: 
     let afterBalance = await web3.eth.getBalance(passenger1)
-    console.log(afterBalance);
+    //console.log(afterBalance);
     
     try{
         result = await config.flightSuretyData.isInsured.call(passenger1, firstAirline, flightCode, timestamp);
     } catch(error) {
         console.log('Problem insuring flight!', error);
     }
-  
+    
+    //insurance payment work //however using the balance in the test environment is not easy.
+    //try using the UI to test this functionality 
+    //it works and trying to insure the same passenger will log a revert message
     console.log(result);
     assert.equal(result, true, "Passenger should be insured");
 

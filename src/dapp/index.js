@@ -117,6 +117,15 @@ import './flightsurety.css';
             }
             
         })
+
+        contract.flightSuretyApp.events.FlightStatusInfo({
+            fromBlock: "latest"
+        }, (error, result) => {
+            if (error) console.log(error);
+
+            console.log(result);
+            display('','', [{label: 'Flight Status Info', error: error, value: result.returnValues.status}]);
+        });
     
     });
     
