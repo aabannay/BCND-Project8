@@ -36,7 +36,7 @@ function initializeOracles(accounts) {
   return new Promise((resolve, reject) => {
     let oracles = [];
     console.log('here');
-    flightSuretyApp.methods.REGISTRATION_FEE.call({from: accounts[0]}).then(regFee => {
+    flightSuretyApp.methods.REGISTRATION_FEE().call({from: accounts[0]}).then(regFee => {
       console.log('Registeration Fee: ',regFee);
       let accList = accounts.slice(15);
       let loopLength = accList.length; 
@@ -107,8 +107,8 @@ initializeAccounts().then(accounts => {
                   status
               ).send({from: oracle[0]/* the address of the oracle */, gas: 5555555}).then(result => {
                 console.log('XXXX');
-                console.log(1);
-                console.log(result);
+                //console.log(1);
+                //console.log(result);
               }).catch(error => {
                 console.log(error);
               });

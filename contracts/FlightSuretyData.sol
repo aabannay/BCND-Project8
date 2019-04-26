@@ -206,6 +206,8 @@ contract FlightSuretyData {
                         uint256 timeOfFlight
 
                     )
+                    view
+                    internal
                     returns (bool result)
     {
         bytes32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timeOfFlight));
@@ -240,9 +242,12 @@ contract FlightSuretyData {
         InsurancePolicy storage policy = insurances[insuranceSignature];
         policy.insuranceValue = insuranceValue; 
         policy.isInsured = true; 
-
+        
         //now save it in the map of flight to insuree
         flightToInsureeMap[getFlightKey(airline, flight, timeOfFlight)].push(insuree); 
+
+        //finally trasfer amount to the contract
+        this.trasfer(insuranceValue);
 
     }
 

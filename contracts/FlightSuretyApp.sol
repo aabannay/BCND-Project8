@@ -250,6 +250,7 @@ contract FlightSuretyApp {
             payable
             requireIsOperational()
     {
+        require(insuranceValue <= 1 ether, 'Ether value should be "1 Ether" or less.');
         flightSuretyData.buy(insuree, airline, flight, timeOfFlight, insuranceValue);
     }
 // region ORACLE MANAGEMENT
