@@ -439,4 +439,5 @@ contract FlightSuretyData {
     function creditInsurees (address airline, string flight, uint256 timeOfFlight) external returns (bool result);
     function isAirline(address airline) external view returns (bool result);
     function fundAirline (address airline) external payable;
+    function pay(address insuree, uint256 amount) external;
 }

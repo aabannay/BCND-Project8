@@ -247,7 +247,7 @@ contract FlightSuretyData {
         flightToInsureeMap[getFlightKey(airline, flight, timeOfFlight)].push(insuree); 
 
         //finally trasfer amount to the contract
-        this.trasfer(insuranceValue);
+        address(this).trasfer(insuranceValue);
 
     }
 
