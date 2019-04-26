@@ -220,8 +220,8 @@ contract FlightSuretyData {
                                 address insuree, //potential insuree
                                 address airline, //addressOfAirline
                                 string flight,  //this is the code of the flight
-                                uint256 timeOfFlight //timestamp of the flight
-                                //uint256 value
+                                uint256 timeOfFlight, //timestamp of the flight
+                                uint256 value
                             )
                             external
                             payable
@@ -229,6 +229,7 @@ contract FlightSuretyData {
                             isAuthorizedCaller()
                             requireIsNotInsured(insuree, airline, flight, timeOfFlight) //we need to check that this caller has not bought insurance already
     {
+        
         //first the airline must be a rigestered airline
         require(airlines[airline].isRegistered, "The airline is not registered");
         //the check of the flights existance is done on the app contract 
