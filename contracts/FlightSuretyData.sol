@@ -204,10 +204,8 @@ contract FlightSuretyData {
                         address airline, 
                         string flight, 
                         uint256 timeOfFlight
-
                     )
                     view
-                    internal
                     returns (bool result)
     {
         bytes32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timeOfFlight));
@@ -222,8 +220,8 @@ contract FlightSuretyData {
                                 address insuree, //potential insuree
                                 address airline, //addressOfAirline
                                 string flight,  //this is the code of the flight
-                                uint256 timeOfFlight, //timestamp of the flight
-                                uint256 insuranceValue   //this is the amount the potential insuree is welling to pay.
+                                uint256 timeOfFlight //timestamp of the flight
+                                //uint256 value
                             )
                             external
                             payable
@@ -240,14 +238,14 @@ contract FlightSuretyData {
 
         //create a new insurance policy and add it to insuraces list. 
         InsurancePolicy storage policy = insurances[insuranceSignature];
-        policy.insuranceValue = insuranceValue; 
+        policy.insuranceValue = msg.value;
         policy.isInsured = true; 
         
         //now save it in the map of flight to insuree
         flightToInsureeMap[getFlightKey(airline, flight, timeOfFlight)].push(insuree); 
 
         //finally trasfer amount to the contract
-        address(this).trasfer(insuranceValue);
+        //address(this).transfer(msg.value);
 
     }
 

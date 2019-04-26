@@ -175,7 +175,7 @@ contract FlightSuretyApp {
                                 requireIsOperational()
     {
         //check
-        require(flightSuretyData.checkAirlineValidity(airline), "Inalid Airline"); 
+        require(flightSuretyData.checkAirlineValidity(airline), "Invalid Airline"); 
 
         //TODO check the time is in the future?
 
@@ -243,15 +243,14 @@ contract FlightSuretyApp {
                 address insuree, 
                 address airline, 
                 string flight, 
-                uint256 timeOfFlight, 
-                uint256 insuranceValue
+                uint256 timeOfFlight
             )
             external
             payable
             requireIsOperational()
     {
-        require(insuranceValue <= 1 ether, 'Ether value should be "1 Ether" or less.');
-        flightSuretyData.buy(insuree, airline, flight, timeOfFlight, insuranceValue);
+        require(msg.value <= 1 ether, 'Ether value should be "1 Ether" or less.');
+        flightSuretyData.buy(insuree, airline, flight, timeOfFlight, msg.value);
     }
 // region ORACLE MANAGEMENT
 
@@ -433,11 +432,11 @@ contract FlightSuretyApp {
 contract FlightSuretyData {
     function isOperational() public view returns(bool);
     function registerAirline(address callingAirline, address newAirline ) external returns(bool);
-    function buy(address insuree, address airline, string flight, uint256 timeOfFlight, uint256 insuranceValue) external; 
+    function buy(address insuree, address airline, string flight, uint256 timeOfFlight, uint256 insuranceValue) external payable; 
     //TODO add other signatures here..
     function checkAirlineValidity(address airline) external returns (bool result);
     function creditInsurees (address airline, string flight, uint256 timeOfFlight) external returns (bool result);
     function isAirline(address airline) external view returns (bool result);
     function fundAirline (address airline) external payable;
-    function pay(address insuree, uint256 amount) external;
+    function pay(address insuree, uint256 amount) external payable;
 }

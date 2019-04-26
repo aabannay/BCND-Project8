@@ -219,17 +219,12 @@ export default class Contract {
     buy(passenger, airline, flight, timestamp, value, callback) {
         let insuranceValue = value; 
         if (insuranceValue) {
-            //accepted ether value of 1 Ether only!
-            if (insuranceValue > 1) {
-                console.log('insurance value cannot be more than 1 Ether!');
-                return; 
-            } else {
                 let self = this; 
                 let insuree = passenger; 
                 //call the contract buy method
                 try {
                     console.log('Wei value: ',this.web3.utils.toWei(insuranceValue,"ether"));
-                    self.flightSuretyApp.methods.buy(insuree, airline, flight, timestamp, this.web3.utils.toWei(insuranceValue,"ether"))
+                    self.flightSuretyApp.methods.buy(insuree, airline, flight, timestamp, /*this.web3.utils.toWei(insuranceValue,"ether")*/)
                                             .send({from: insuree, value: this.web3.utils.toWei(insuranceValue,"ether"), gas:5555555 },
                                             (error, result) => {
                                                 callback(error, result);
@@ -237,7 +232,6 @@ export default class Contract {
                 } catch(e) {
                     console.log(e);
                 }
-            }
         //not known insurance value
         } else {
             console.log('insurance value needs to be defined!');
