@@ -109,7 +109,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
     //fund first airline
     try {
-        await config.flightSuretyApp.fundAirline(firstAirline, {from: firstAirline, value: 10}); 
+        await config.flightSuretyApp.fundAirline(firstAirline, {from: firstAirline, value: web3.utils.toWei("10","ether")}); 
     } catch(e) {
         console.log('could not fund first airline!');
     }
@@ -168,7 +168,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
     //now fund airline 1 and try to register airline4 using that. 
     try {
-        await config.flightSuretyApp.fundAirline(airline1, {from: airline1, value: 10}); 
+        await config.flightSuretyApp.fundAirline(airline1, {from: airline1, value: web3.utils.toWei("10","ether")}); 
     } catch(e) {
         console.log('could not fund first airline!');
     }
@@ -208,11 +208,11 @@ contract('Flight Surety Tests', async (accounts) => {
     }
 
     //show balance before buying: 
-    let beforeBalance = await web3.eth.getBalance(passenger1)
-    console.log(beforeBalance);
+    //let beforeBalance = await web3.eth.getBalance(passenger1)
+    //console.log(beforeBalance);
 
     let insuranceValue = 1;
-    console.log(web3.utils.toWei(insuranceValue.toString(),"ether"));
+    //console.log(web3.utils.toWei(insuranceValue.toString(),"ether"));
     //try block for buying insurance
     try { 
         await config.flightSuretyApp.buy(passenger1, firstAirline, flightCode, timestamp, {value: web3.utils.toWei(insuranceValue.toString(),"ether")});
@@ -221,8 +221,8 @@ contract('Flight Surety Tests', async (accounts) => {
     }
 
     //show balance after buying: 
-    let afterBalance = await web3.eth.getBalance(passenger1)
-    console.log(afterBalance);
+    //let afterBalance = await web3.eth.getBalance(passenger1)
+    //console.log(afterBalance);
     
     try{
         result = await config.flightSuretyData.isInsured.call(passenger1, firstAirline, flightCode, timestamp);
@@ -233,12 +233,13 @@ contract('Flight Surety Tests', async (accounts) => {
     //insurance payment work //however using the balance in the test environment is not easy.
     //try using the UI to test this functionality 
     //it works and trying to insure the same passenger will log a revert message
-    console.log(result);
+    //console.log(result);
     assert.equal(result, true, "Passenger should be insured");
 
-    //result2 = (afterBalance + insuranceValue ==  beforeBalance);
-    //assert.equal(result2, true, "The balance should have reduced already with amount of insurance!");
-  });
+    let policy = null; 
+    policy = await config.flightSuretyApp.getInsurancePolicy.call(passenger1,  firstAirline, flightCode, timestamp);
+    assert.equal(policy[1].toNumber(), 1000000000000000000, 'Insurance Value should be 1 Ether which is 1000000000000000000 Wei')
+    });
 
   it('passenger get paid 1.5X what they paid if flight delayed (CODE 20)', async () => {
 
@@ -263,11 +264,12 @@ contract('Flight Surety Tests', async (accounts) => {
     // console.log(beforeBalance);
 
     let credits = await config.flightSuretyApp.getCredits.call(passenger1);
-    console.log('credits: ', credits.toString());
+    //console.log('credits: ', credits.toNumber());
+    assert(credits, 0, 'Passenger should have 0 credits');
 
     let policy = null; 
     policy = await config.flightSuretyApp.getInsurancePolicy.call(passenger1,  firstAirline, flightCode, timestamp);
-    console.log(policy.toString());
+    //console.log(policy.toString());
     
     //check if paid or not yet
     let isCredited= await config.flightSuretyData.isPaid(passenger1, firstAirline, flightCode, timestamp);
@@ -282,8 +284,56 @@ contract('Flight Surety Tests', async (accounts) => {
     assert(isCredited, "Passenger should have been paid");
 
     credits = await config.flightSuretyApp.getCredits.call(passenger1);
-    console.log('credits: ', credits.toString());
-    policy = await config.flightSuretyApp.getInsurancePolicy.call(passenger1,  firstAirline, flightCode, timestamp);
-    console.log(policy.toString());
+    //console.log('credits: ', credits.toString());
+    assert(credits, 1500000000000000000, 'Passenger should be credited 1.5 Ether i.e. 1500000000000000000 Wei');
+
   });
+
+  it('passengers can withdraw the ether that they were credited!', async () => {
+
+    //the first airline was registered when the Data contract was deployed (owner i.e. accounts[0])
+    let firstAirline = accounts[0]; //owner
+    let passenger1 = accounts[9];
+    //continuing on the previous test..
+
+    let flightCode = 'XX0XX';
+    let timestamp = 12345678; 
+
+    try{
+        result = await config.flightSuretyData.isInsured.call(passenger1, firstAirline, flightCode, timestamp);
+    } catch(error) {
+        console.log('Problem insuring flight!', error);
+    }
+    
+    assert(result, "Passenger is not insured!");
+
+    let isCredited = await config.flightSuretyData.isPaid(passenger1, firstAirline, flightCode, timestamp);
+    assert(isCredited, "Passenger should have been credited");
+
+    //show balance before: 
+    //let beforeBalance = await web3.eth.getBalance(passenger1)
+    //console.log(beforeBalance);
+
+    let policy = null; 
+    policy = await config.flightSuretyApp.getInsurancePolicy.call(passenger1,  firstAirline, flightCode, timestamp);
+    //console.log(policy.toString());
+    
+    //get currently available credits
+    let currentCredits = await config.flightSuretyApp.getCredits.call(passenger1);
+    //console.log(currentCredits.toNumber());
+    assert(currentCredits, 1500000000000000000, 'Passenger should have been credited 1500000000000000000 Wei');
+    //withdraw the amount 
+    await config.flightSuretyApp.withdraw(passenger1, currentCredits, {from: passenger1});
+
+    currentCredits = await config.flightSuretyApp.getCredits.call(passenger1);
+    //console.log(currentCredits.toNumber());
+
+    assert(currentCredits, 0, 'the balance should have been emptied');
+
+    //show balance after buying: 
+    //let afterBalance = await web3.eth.getBalance(passenger1)
+    //console.log(afterBalance);
+
+  });
+
 });

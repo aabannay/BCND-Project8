@@ -54,7 +54,7 @@ contract('Oracles', async (accounts) => {
       let oracleIndexes = await config.flightSuretyApp.getMyIndexes.call({ from: accounts[a]});
       
       for(let idx=0;idx<3;idx++) {
-        console.log('Indexes: ',oracleIndexes[idx]);
+        //console.log('Indexes: ',oracleIndexes[idx]);
         try {
           // Submit a response...it will only be accepted if there is an Index match
           await config.flightSuretyApp.submitOracleResponse(oracleIndexes[idx], config.firstAirline, flight, timestamp, STATUS_CODE_ON_TIME, { from: accounts[a] });

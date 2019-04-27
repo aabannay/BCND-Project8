@@ -273,15 +273,11 @@ contract FlightSuretyData {
 
         //create a new insurance policy and add it to insuraces list. 
         InsurancePolicy storage policy = insurances[insuranceSignature];
-        policy.insuranceValue = msg.value;
+        policy.insuranceValue = value;
         policy.isInsured = true; 
         
         //now save it in the map of flight to insuree
         flightToInsureeMap[getFlightKey(airline, flight, timeOfFlight)].push(insuree); 
-
-        //finally trasfer amount to the contract
-        address(this).transfer(msg.value);
-
     }
 
     modifier requireIsInsured(
