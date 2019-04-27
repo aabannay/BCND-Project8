@@ -80,7 +80,7 @@ initializeAccounts().then(accounts => {
       fromBlock: "latest"
     }, function (error, event) {
       if (error) console.log(error);
-      //console.log(event)
+      console.log(event)
       let index = event.returnValues.index; 
       let airline = event.returnValues.airline; 
       let flight = event.returnValues.flight; 

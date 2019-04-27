@@ -206,10 +206,44 @@ contract FlightSuretyData {
                         uint256 timeOfFlight
                     )
                     view
+                    requireIsOperational()
                     returns (bool result)
     {
         bytes32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timeOfFlight));
         return insurances[insuranceSignature].isInsured;
+    }
+
+    function isPaid(
+                        address insuree, 
+                        address airline, 
+                        string flight, 
+                        uint256 timeOfFlight
+                    )
+                    view
+                    requireIsOperational()
+                    returns (bool result)
+    {
+        bytes32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timeOfFlight));
+         return insurances[insuranceSignature].gotPaid;
+    }
+
+    function getInsurancePolicy( 
+                                    address insuree,
+                                    address airline, 
+                                    string flight,
+                                    uint256 timeOfFlight
+                                )
+                                external
+                                view
+                                requireIsOperational()
+                                isAuthorizedCaller()
+                                returns(bool, uint256, bool)
+    {
+        require(isInsured(insuree, airline, flight, timeOfFlight), "Passenger is not insured for this flight");
+        bytes32 insuranceSignature = keccak256(abi.encodePacked(insuree, airline, flight, timeOfFlight));
+        return (insurances[insuranceSignature].isInsured, 
+                insurances[insuranceSignature].insuranceValue,
+                insurances[insuranceSignature].gotPaid);
     }
    /**
     * @dev Buy insurance for a flight
@@ -246,7 +280,7 @@ contract FlightSuretyData {
         flightToInsureeMap[getFlightKey(airline, flight, timeOfFlight)].push(insuree); 
 
         //finally trasfer amount to the contract
-        //address(this).transfer(msg.value);
+        address(this).transfer(msg.value);
 
     }
 
@@ -262,7 +296,20 @@ contract FlightSuretyData {
     } 
 
     //cridets of insuees 
-    mapping(address => uint256) cridets; 
+    mapping(address => uint256) private cridets; 
+
+    function getCredits(
+                            address insuree
+                        )
+                        external
+                        view
+                        isAuthorizedCaller()
+                        returns(uint256)
+    {
+        uint256 value; 
+        value = cridets[insuree]; 
+        return value; 
+    }
 
     /**
      *  @dev Credits payouts to insurees
@@ -312,18 +359,21 @@ contract FlightSuretyData {
                             external
                             requireIsOperational()
                             isAuthorizedCaller()
+                            returns(uint256)
     {
         //check if the contract has enough funds to pay the insuree
         require(address(this).balance >= amount, "There are no enough funds to pay in the contract");
 
         //check if the required amount is available to the insuree
-        require(cridets[insuree] >= amount, "Passer do not have enough cridet");
+        require(cridets[insuree] >= amount, "Passenger do not have enough cridet");
 
         //subtract the cridets
         cridets[insuree] = cridets[insuree].sub(amount); 
 
-        //pay the amount 
-        insuree.transfer(amount);
+        //pay the amount
+        uint256 paidAmount = amount;  
+        insuree.transfer(paidAmount);
+        return paidAmount;
     }
 
    /**

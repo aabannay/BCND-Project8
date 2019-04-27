@@ -209,19 +209,20 @@ contract('Flight Surety Tests', async (accounts) => {
 
     //show balance before buying: 
     let beforeBalance = await web3.eth.getBalance(passenger1)
-    //console.log(beforeBalance);
+    console.log(beforeBalance);
 
     let insuranceValue = 1;
+    console.log(web3.utils.toWei(insuranceValue.toString(),"ether"));
     //try block for buying insurance
     try { 
-        await config.flightSuretyApp.buy(passenger1, firstAirline, flightCode, timestamp, {value: insuranceValue});
+        await config.flightSuretyApp.buy(passenger1, firstAirline, flightCode, timestamp, {value: web3.utils.toWei(insuranceValue.toString(),"ether")});
     } catch(e) {
         console.log('Error while buying insurance', e);
     }
 
     //show balance after buying: 
     let afterBalance = await web3.eth.getBalance(passenger1)
-    //console.log(afterBalance);
+    console.log(afterBalance);
     
     try{
         result = await config.flightSuretyData.isInsured.call(passenger1, firstAirline, flightCode, timestamp);
@@ -239,5 +240,44 @@ contract('Flight Surety Tests', async (accounts) => {
     //assert.equal(result2, true, "The balance should have reduced already with amount of insurance!");
   });
 
+  it('passenger get paid 1.5X what they paid if flight delayed (CODE 20)', async () => {
 
+    //the first airline was registered when the Data contract was deployed (owner i.e. accounts[0])
+    let firstAirline = accounts[0]; //owner
+    let passenger1 = accounts[9];
+    //continuing on the previous test..
+
+    let flightCode = 'XX0XX';
+    let timestamp = 12345678; 
+
+    try{
+        result = await config.flightSuretyData.isInsured.call(passenger1, firstAirline, flightCode, timestamp);
+    } catch(error) {
+        console.log('Problem insuring flight!', error);
+    }
+    
+    assert(result, "Passenger is not insured!");
+
+    //show balance before: 
+    // let beforeBalance = await web3.eth.getBalance(passenger1)
+    // console.log(beforeBalance);
+
+    let policy = null; 
+    policy = await config.flightSuretyApp.getInsurancePolicy(passenger1,  firstAirline, flightCode, timestamp);
+    //console.log(policy);
+    
+    //check if paid or not yet
+    let isCredited= await config.flightSuretyData.isPaid(passenger1, firstAirline, flightCode, timestamp);
+    assert(!isCredited, "Passenger should not have been paid yet..");
+    
+    
+    //call creditInsurees to check if they will be checked as paid
+    await config.flightSuretyData.creditInsurees(firstAirline, flightCode, timestamp);
+
+
+    isCredited = await config.flightSuretyData.isPaid(passenger1, firstAirline, flightCode, timestamp);
+    assert(isCredited, "Passenger should have been paid");
+
+    
+  });
 });

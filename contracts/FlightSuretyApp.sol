@@ -252,6 +252,43 @@ contract FlightSuretyApp {
         require(msg.value <= 1 ether, 'Ether value should be "1 Ether" or less.');
         flightSuretyData.buy(insuree, airline, flight, timeOfFlight, msg.value);
     }
+
+
+    function getInsurancePolicy(
+                                address insuree, 
+                                address airline, 
+                                string flight, 
+                                uint256 timeOfFlight
+                                )
+                                requireIsOperational()
+                                returns (bool, uint256, bool)
+    {
+        bool isInsured; 
+        uint256 value; 
+        bool gotPaid; 
+
+        (isInsured, value, gotPaid) = flightSuretyData.getInsurancePolicy(insuree, airline, flight, timeOfFlight);
+        return (isInsured, value, gotPaid);
+    }
+
+    function getCredits(
+                         address insuree
+                        )
+                        returns (uint256)
+    {
+        uint256 value; 
+        value = flightSuretyData.getCredits(insuree);
+    }
+
+    function withdraw(
+                        address insuree,
+                        uint256 amount
+                    )
+                    requireIsOperational()
+    {
+        require(msg.sender == insuree, 'Withdraw should be performed by insuree address!');
+        flightSuretyData.pay(insuree, amount);
+    } 
 // region ORACLE MANAGEMENT
 
     // Incremented to add pseudo-randomness at various points
@@ -438,5 +475,7 @@ contract FlightSuretyData {
     function creditInsurees (address airline, string flight, uint256 timeOfFlight) external returns (bool result);
     function isAirline(address airline) external view returns (bool result);
     function fundAirline (address airline) external payable;
-    function pay(address insuree, uint256 amount) external payable;
+    function pay(address insuree, uint256 amount) external;
+    function getInsurancePolicy(address insuree, address airline, string flight, uint256 timeOfFlight) external returns(bool, uint256, bool);
+    function getCredits(address insuree) external returns(uint256);
 }
