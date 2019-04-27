@@ -278,6 +278,7 @@ contract FlightSuretyApp {
     {
         uint256 value; 
         value = flightSuretyData.getCredits(insuree);
+        return value; 
     }
 
     function withdraw(

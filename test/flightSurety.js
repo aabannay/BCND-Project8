@@ -262,9 +262,12 @@ contract('Flight Surety Tests', async (accounts) => {
     // let beforeBalance = await web3.eth.getBalance(passenger1)
     // console.log(beforeBalance);
 
+    let credits = await config.flightSuretyApp.getCredits.call(passenger1);
+    console.log('credits: ', credits.toString());
+
     let policy = null; 
-    policy = await config.flightSuretyApp.getInsurancePolicy(passenger1,  firstAirline, flightCode, timestamp);
-    //console.log(policy);
+    policy = await config.flightSuretyApp.getInsurancePolicy.call(passenger1,  firstAirline, flightCode, timestamp);
+    console.log(policy.toString());
     
     //check if paid or not yet
     let isCredited= await config.flightSuretyData.isPaid(passenger1, firstAirline, flightCode, timestamp);
@@ -278,6 +281,9 @@ contract('Flight Surety Tests', async (accounts) => {
     isCredited = await config.flightSuretyData.isPaid(passenger1, firstAirline, flightCode, timestamp);
     assert(isCredited, "Passenger should have been paid");
 
-    
+    credits = await config.flightSuretyApp.getCredits.call(passenger1);
+    console.log('credits: ', credits.toString());
+    policy = await config.flightSuretyApp.getInsurancePolicy.call(passenger1,  firstAirline, flightCode, timestamp);
+    console.log(policy.toString());
   });
 });
